@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -38,10 +39,28 @@ func createEmp(c *gin.Context) {
 	emps = append(emps, newEmp)
 	c.IndentedJSON(http.StatusCreated, newEmp)
 }
+func getEmpById(id string) (*Emp, error) {
+	for _, e := range emps {
+		if e.Id == id {
+			return &e, nil
+		}
+	}
+	return nil, errors.New("Employee Details not found")
+}
 
+func getEmployeeId(c *gin.Context) {
+	id := c.Param("id")
+	res, err := getEmpById(id)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Employee Details not found"})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, res)
+}
 func main() {
 	router := gin.Default()
 	router.GET("/emp", getEmp)
 	router.POST("/emp", createEmp)
+	router.GET("/emp/:id", getEmployeeId)
 	router.Run("localhost:8080")
 }
